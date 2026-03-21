@@ -12,3 +12,6 @@ categories = ["gui"]
 
 [dependencies]
 egui = "0.30"
+
+[dev-dependencies]
+eframe = { version = "0.30", default-features = true }

@@ -37,6 +37,12 @@ fn show_editor(ui: &mut egui::Ui, value: &mut u64) {
 }
 ```
 
+Run the included demo app with:
+
+```bash
+cargo run --example digitwise_number_editor
+```
+
 ## Development
 
 ```bash
