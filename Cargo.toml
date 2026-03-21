@@ -1,0 +1,14 @@
+[package]
+name = "egui_custom_widgets"
+version = "0.1.0"
+description = "Reusable custom widgets built on top of egui."
+edition = "2024"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/Frydac/egui_custom_widgets"
+keywords = ["egui", "gui", "widget"]
+categories = ["gui"]
+
+[dependencies]
+egui = "0.30"
