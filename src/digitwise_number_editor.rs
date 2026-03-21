@@ -135,12 +135,17 @@ impl<'a> DigitwiseNumberEditor<'a> {
                     request_editor_focus = true;
                 }
 
-                let has_focus = ui.memory(|memory| memory.has_focus(editor_id)) && state.selected_digit == digit_index;
+                let has_focus = ui.memory(|memory| memory.has_focus(editor_id))
+                    && state.selected_digit == digit_index;
 
-                let is_leading_zero = self.dim_leading_zeroes && is_leading_zero_digit(&digit_chars, digit_index);
+                let is_leading_zero =
+                    self.dim_leading_zeroes && is_leading_zero_digit(&digit_chars, digit_index);
                 paint_digit(ui, rect, digit_char, &font_id, has_focus, is_leading_zero);
 
-                rendered_digits.push(RenderedDigit { id: digit_id, response });
+                rendered_digits.push(RenderedDigit {
+                    id: digit_id,
+                    response,
+                });
 
                 if has_group_separator(digits, digit_index) {
                     paint_separator(ui, &font_id);
@@ -152,7 +157,11 @@ impl<'a> DigitwiseNumberEditor<'a> {
         for digit in &rendered_digits {
             response = response.union(digit.response.clone());
         }
-        response = response.union(ui.interact(response.rect, editor_id, Sense::focusable_noninteractive()));
+        response = response.union(ui.interact(
+            response.rect,
+            editor_id,
+            Sense::focusable_noninteractive(),
+        ));
         register_digit_ids(
             ui.ctx(),
             std::iter::once(editor_id).chain(rendered_digits.iter().map(|digit| digit.id)),
@@ -171,7 +180,13 @@ impl<'a> DigitwiseNumberEditor<'a> {
                         let step_delta = total_steps - active_drag.applied_steps;
                         if step_delta != 0 {
                             let digit_index = active_drag.digit_index;
-                            let any_change = apply_drag_step_delta(self.value, digits, digit_index, step_delta, clamped_max);
+                            let any_change = apply_drag_step_delta(
+                                self.value,
+                                digits,
+                                digit_index,
+                                step_delta,
+                                clamped_max,
+                            );
                             active_drag.applied_steps = total_steps;
                             drag_focus_digit = Some(digit_index);
                             state.has_saved_selection = true;
@@ -194,14 +209,13 @@ impl<'a> DigitwiseNumberEditor<'a> {
 
         let focused_digit = rendered_digits
             .first()
-            .and(
-                ui.memory(|memory| memory.has_focus(editor_id))
-                    .then_some(if state.has_saved_selection {
-                        state.selected_digit
-                    } else {
-                        first_significant_digit_index(&digit_chars)
-                    }),
-            )
+            .and(ui.memory(|memory| memory.has_focus(editor_id)).then_some(
+                if state.has_saved_selection {
+                    state.selected_digit
+                } else {
+                    first_significant_digit_index(&digit_chars)
+                },
+            ))
             .or(drag_focus_digit)
             .or(request_editor_focus.then_some(state.selected_digit));
 
@@ -258,7 +272,8 @@ impl<'a> DigitwiseNumberEditor<'a> {
                     action = Some(DigitwiseNumberEditorAction::DecrementPlace);
                 }
             } else if let Some(input) = typed_digit_input(ui) {
-                let current_digit = digit_chars[focused_digit].to_digit(10).expect("digit char") as u8;
+                let current_digit =
+                    digit_chars[focused_digit].to_digit(10).expect("digit char") as u8;
 
                 if let Some(new_digit) = input {
                     let next_digit = (focused_digit + 1).min(digits - 1);
@@ -268,7 +283,13 @@ impl<'a> DigitwiseNumberEditor<'a> {
                             state.has_saved_selection = true;
                             action = Some(DigitwiseNumberEditorAction::MoveRight);
                         }
-                    } else if apply_replace_digit(self.value, digits, focused_digit, new_digit, clamped_max) {
+                    } else if apply_replace_digit(
+                        self.value,
+                        digits,
+                        focused_digit,
+                        new_digit,
+                        clamped_max,
+                    ) {
                         changed = true;
                         action = Some(DigitwiseNumberEditorAction::ReplaceDigit);
                         state.selected_digit = next_digit;
@@ -344,7 +365,10 @@ fn store_drag_state(ctx: &egui::Context, id: egui::Id, state: Option<DragState>)
 
 fn digit_size(ui: &Ui, digit_width: Option<f32>) -> egui::Vec2 {
     let glyph_size = glyph_size(ui);
-    egui::vec2(digit_width.unwrap_or(glyph_size.x + 4.0), glyph_size.y + 4.0)
+    egui::vec2(
+        digit_width.unwrap_or(glyph_size.x + 4.0),
+        glyph_size.y + 4.0,
+    )
 }
 
 fn digit_interaction_sense() -> Sense {
@@ -356,11 +380,23 @@ fn digit_interaction_sense() -> Sense {
 }
 
 fn glyph_size(ui: &Ui) -> egui::Vec2 {
-    let galley = WidgetText::from("0").into_galley(ui, Some(egui::TextWrapMode::Extend), f32::INFINITY, egui::TextStyle::Monospace);
+    let galley = WidgetText::from("0").into_galley(
+        ui,
+        Some(egui::TextWrapMode::Extend),
+        f32::INFINITY,
+        egui::TextStyle::Monospace,
+    );
     galley.size()
 }
 
-fn paint_digit(ui: &Ui, rect: egui::Rect, digit_char: char, font_id: &FontId, has_focus: bool, is_leading_zero: bool) {
+fn paint_digit(
+    ui: &Ui,
+    rect: egui::Rect,
+    digit_char: char,
+    font_id: &FontId,
+    has_focus: bool,
+    is_leading_zero: bool,
+) {
     let base_bg = ui.visuals().extreme_bg_color;
     let bg_fill = if has_focus {
         base_bg.linear_multiply(5.0)
@@ -373,15 +409,24 @@ fn paint_digit(ui: &Ui, rect: egui::Rect, digit_char: char, font_id: &FontId, ha
         ui.visuals().text_color()
     };
 
-    ui.painter().rect(rect, 1.5, bg_fill, Stroke::new(0.0, Color32::TRANSPARENT));
     ui.painter()
-        .text(rect.center(), Align2::CENTER_CENTER, digit_char, font_id.clone(), text_color);
+        .rect(rect, 1.5, bg_fill, Stroke::new(0.0, Color32::TRANSPARENT));
+    ui.painter().text(
+        rect.center(),
+        Align2::CENTER_CENTER,
+        digit_char,
+        font_id.clone(),
+        text_color,
+    );
 }
 
 fn paint_separator(ui: &mut Ui, font_id: &FontId) {
     let glyph_size = glyph_size(ui);
     let (rect, _) = ui.allocate_exact_size(
-        egui::vec2(glyph_size.x * GROUP_SEPARATOR_WIDTH_FACTOR, glyph_size.y + 4.0),
+        egui::vec2(
+            glyph_size.x * GROUP_SEPARATOR_WIDTH_FACTOR,
+            glyph_size.y + 4.0,
+        ),
         Sense::hover(),
     );
     ui.painter().text(
@@ -431,7 +476,11 @@ fn format_value(value: u64, digits: usize) -> String {
 }
 
 fn is_leading_zero_digit(digit_chars: &[char], digit_index: usize) -> bool {
-    digit_chars.get(digit_index) == Some(&'0') && digit_chars.iter().take(digit_index + 1).all(|digit_char| *digit_char == '0')
+    digit_chars.get(digit_index) == Some(&'0')
+        && digit_chars
+            .iter()
+            .take(digit_index + 1)
+            .all(|digit_char| *digit_char == '0')
 }
 
 fn first_significant_digit_index(digit_chars: &[char]) -> usize {
@@ -446,7 +495,13 @@ fn has_group_separator(digits: usize, digit_index: usize) -> bool {
     remaining_digits > 0 && remaining_digits.is_multiple_of(3)
 }
 
-fn apply_replace_digit(value: &mut u64, digits: usize, digit_index: usize, new_digit: u8, max: u64) -> bool {
+fn apply_replace_digit(
+    value: &mut u64,
+    digits: usize,
+    digit_index: usize,
+    new_digit: u8,
+    max: u64,
+) -> bool {
     let next = replace_digit(*value, digits, digit_index, new_digit);
     if next > max || next == *value {
         return false;
@@ -463,7 +518,13 @@ fn replace_digit(value: u64, digits: usize, digit_index: usize, new_digit: u8) -
     removed.saturating_add(new_digit as u64 * factor)
 }
 
-fn apply_step_at_digit(value: &mut u64, digits: usize, digit_index: usize, delta_sign: i8, max: u64) -> bool {
+fn apply_step_at_digit(
+    value: &mut u64,
+    digits: usize,
+    digit_index: usize,
+    delta_sign: i8,
+    max: u64,
+) -> bool {
     let step = digit_step(digits, digit_index);
     let next = match delta_sign {
         1 => (*value).saturating_add(step).min(max),
@@ -479,7 +540,13 @@ fn apply_step_at_digit(value: &mut u64, digits: usize, digit_index: usize, delta
     true
 }
 
-fn apply_drag_step_delta(value: &mut u64, digits: usize, digit_index: usize, step_delta: i32, max: u64) -> bool {
+fn apply_drag_step_delta(
+    value: &mut u64,
+    digits: usize,
+    digit_index: usize,
+    step_delta: i32,
+    max: u64,
+) -> bool {
     let delta_sign = step_delta.signum() as i8;
     let nr_steps = step_delta.unsigned_abs();
     let mut any_change = false;
