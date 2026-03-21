@@ -1,5 +1,7 @@
 # egui_custom_widgets
 
+[![CI](https://github.com/Frydac/egui_custom_widgets/actions/workflows/ci.yml/badge.svg)](https://github.com/Frydac/egui_custom_widgets/actions/workflows/ci.yml)
+
 Reusable custom widgets built on top of `egui`.
 
 This repository currently exposes `DigitwiseNumberEditor`, a numeric editor that:
@@ -44,6 +46,21 @@ cargo run --example digitwise_number_editor
 ```
 
 ## Development
+
+Run the same checks as CI with:
+
+```bash
+./scripts/check.sh
+```
+
+That script runs formatting, tests, and the example build check.
+
+To enable the included pre-commit hook so these checks run automatically before each commit:
+
+```bash
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-commit
+```
 
 ```bash
 cargo fmt
