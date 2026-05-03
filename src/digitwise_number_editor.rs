@@ -1,4 +1,6 @@
-use egui::{self, Align2, Color32, EventFilter, FontId, Response, Sense, Stroke, Ui, WidgetText};
+use egui::{
+    self, Align2, Color32, EventFilter, FontId, Response, Sense, Stroke, StrokeKind, Ui, WidgetText,
+};
 
 const MAX_U64_DIGITS: usize = 20;
 const DRAG_START_THRESHOLD_PX: f32 = 4.0;
@@ -372,11 +374,7 @@ fn digit_size(ui: &Ui, digit_width: Option<f32>) -> egui::Vec2 {
 }
 
 fn digit_interaction_sense() -> Sense {
-    Sense {
-        click: true,
-        drag: true,
-        focusable: false,
-    }
+    Sense::CLICK | Sense::DRAG
 }
 
 fn glyph_size(ui: &Ui) -> egui::Vec2 {
@@ -409,8 +407,13 @@ fn paint_digit(
         ui.visuals().text_color()
     };
 
-    ui.painter()
-        .rect(rect, 1.5, bg_fill, Stroke::new(0.0, Color32::TRANSPARENT));
+    ui.painter().rect(
+        rect,
+        1.5,
+        bg_fill,
+        Stroke::new(0.0, Color32::TRANSPARENT),
+        StrokeKind::Inside,
+    );
     ui.painter().text(
         rect.center(),
         Align2::CENTER_CENTER,

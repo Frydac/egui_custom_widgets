@@ -17,8 +17,8 @@ struct ExampleApp {
 }
 
 impl eframe::App for ExampleApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show_inside(ui, |ui| {
             ui.heading("DigitwiseNumberEditor");
             ui.label("Click a digit, type a replacement, use arrow keys, or drag vertically.");
             ui.add_space(8.0);
